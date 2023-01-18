@@ -43,6 +43,7 @@ class SpringApplicationRunListeners {
 	}
 
 	void starting() {
+		// 遍历 所有的 SpringApplicationRunListener
 		for (SpringApplicationRunListener listener : this.listeners) {
 			listener.starting();
 		}

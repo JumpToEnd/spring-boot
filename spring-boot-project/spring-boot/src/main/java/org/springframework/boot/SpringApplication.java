@@ -302,15 +302,31 @@ public class SpringApplication {
 	 * @return a running {@link ApplicationContext}
 	 */
 	public ConfigurableApplicationContext run(String... args) {
+		// 创建一个监视器，并且启动
 		StopWatch stopWatch = new StopWatch();
 		stopWatch.start();
+
 		ConfigurableApplicationContext context = null;
+		// 设置 java.awt.headless 属性
 		configureHeadlessProperty();
+
+		// 创建一个 SpringApplicationRunListeners 对象
+		// 内部持有 从 spring.factory 文件中读取的 SpringApplicationRunListener 对应的值的集合
 		SpringApplicationRunListeners listeners = getRunListeners(args);
+		// 启动 SpringApplicationRunListeners
+		// 发布 ApplicationStartingEvent 事件
+		// 主要监听器：
+		// 1. LoggingApplicationListener
+		// 2. LiquibaseServiceLocatorApplicationListener
 		listeners.starting();
+
+
 		try {
+			// 封装参数 到 DefaultApplicationArguments 中
 			ApplicationArguments applicationArguments = new DefaultApplicationArguments(args);
+			// 准备环境
 			ConfigurableEnvironment environment = prepareEnvironment(listeners, applicationArguments);
+
 			configureIgnoreBeanInfo(environment);
 			Banner printedBanner = printBanner(environment);
 			context = createApplicationContext();
@@ -342,11 +358,28 @@ public class SpringApplication {
 	private ConfigurableEnvironment prepareEnvironment(SpringApplicationRunListeners listeners,
 			ApplicationArguments applicationArguments) {
 		// Create and configure the environment
+		// 创建或者配置一个environment，如果是创建的话根据 web 类型 创建
 		ConfigurableEnvironment environment = getOrCreateEnvironment();
+		// 配置 environment
+		// 1. 配置 conversionService
+		// 2. 配置 propertySource
+		// 3. 配置 profiles
 		configureEnvironment(environment, applicationArguments.getSourceArgs());
+
 		ConfigurationPropertySources.attach(environment);
+
+		// 发布 ApplicationEnvironmentPreparedEvent 事件
+		// 主要监听器：
+		// 1. LoggingApplicationListener
+		// 2. FileEncodingApplicationListener
+		// 3. AnsiOutputApplicationListener
+		// 4. ConfigFileApplicationListener
+		// 5. ClasspathLoggingApplicationListener
+		// 6.
 		listeners.environmentPrepared(environment);
+
 		bindToSpringApplication(environment);
+
 		if (!this.isCustomEnvironment) {
 			environment = new EnvironmentConverter(getClassLoader()).convertEnvironmentIfNecessary(environment,
 					deduceEnvironmentClass());
@@ -415,7 +448,13 @@ public class SpringApplication {
 
 	private SpringApplicationRunListeners getRunListeners(String[] args) {
 		Class<?>[] types = new Class<?>[] { SpringApplication.class, String[].class };
+		// 创建 SpringApplicationRunListeners 类
+		// 内部持有 SpringApplicationRunListener 集合
+		//
 		return new SpringApplicationRunListeners(logger,
+				// 从 spring.factory 文件中 读取 SpringApplicationRunListener 对应的值
+				// org.springframework.boot.context.event.EventPublishingRunListener （会初始化 initialMulticaster）
+				//
 				getSpringFactoriesInstances(SpringApplicationRunListener.class, types, this, args));
 	}
 
@@ -452,9 +491,11 @@ public class SpringApplication {
 	}
 
 	private ConfigurableEnvironment getOrCreateEnvironment() {
+		// 如果environment不为空，直接返回 environment
 		if (this.environment != null) {
 			return this.environment;
 		}
+		// 根据当前web 类型来决定 创建哪种 environment
 		switch (this.webApplicationType) {
 		case SERVLET:
 			return new StandardServletEnvironment();
@@ -477,11 +518,16 @@ public class SpringApplication {
 	 * @see #configurePropertySources(ConfigurableEnvironment, String[])
 	 */
 	protected void configureEnvironment(ConfigurableEnvironment environment, String[] args) {
+
+		// 配置转换服务  conversionService
 		if (this.addConversionService) {
 			ConversionService conversionService = ApplicationConversionService.getSharedInstance();
 			environment.setConversionService((ConfigurableConversionService) conversionService);
 		}
+
+		// 配置 propertySources
 		configurePropertySources(environment, args);
+		// 配置 profile
 		configureProfiles(environment, args);
 	}
 
@@ -494,9 +540,14 @@ public class SpringApplication {
 	 */
 	protected void configurePropertySources(ConfigurableEnvironment environment, String[] args) {
 		MutablePropertySources sources = environment.getPropertySources();
+
+		// 如果 defaultProperties 不为null  并且 defaultProperties 不为空
 		if (this.defaultProperties != null && !this.defaultProperties.isEmpty()) {
+			// 把 defaultProperties 插入到 最后
 			sources.addLast(new MapPropertySource("defaultProperties", this.defaultProperties));
 		}
+
+
 		if (this.addCommandLineProperties && args.length > 0) {
 			String name = CommandLinePropertySource.COMMAND_LINE_PROPERTY_SOURCE_NAME;
 			if (sources.contains(name)) {
@@ -523,8 +574,12 @@ public class SpringApplication {
 	 * @see org.springframework.boot.context.config.ConfigFileApplicationListener
 	 */
 	protected void configureProfiles(ConfigurableEnvironment environment, String[] args) {
+		// 创建一个  profiles 集合
+		// 如果我们向 additionalProfiles 集合中添加过 配置
 		Set<String> profiles = new LinkedHashSet<>(this.additionalProfiles);
+		// 读取 spring.profiles.active 配置的 活跃配置文件集合
 		profiles.addAll(Arrays.asList(environment.getActiveProfiles()));
+		// 将 如上profiles集合中所有的 配置文件都设置到 environment
 		environment.setActiveProfiles(StringUtils.toStringArray(profiles));
 	}
 
@@ -1250,8 +1305,13 @@ public class SpringApplication {
 	 * @return the running {@link ApplicationContext}
 	 */
 	public static ConfigurableApplicationContext run(Class<?>[] primarySources, String[] args) {
-		// 1.创建 SpringApplication 对象
-		//   a.
+		// 1. 创建 SpringApplication 对象
+		//   a. 初始化 resourceLoader
+		//   b. 决定 web 类型
+		//   c. 设置 initializer
+		//   d. 设置 listener
+		//   e. 设置 mainApplicationClass
+		// 2. 执行 run()方法
 		return new SpringApplication(primarySources).run(args);
 	}
 
