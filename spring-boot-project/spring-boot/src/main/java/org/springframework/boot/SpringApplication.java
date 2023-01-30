@@ -330,8 +330,13 @@ public class SpringApplication {
 			configureIgnoreBeanInfo(environment);
 			Banner printedBanner = printBanner(environment);
 			context = createApplicationContext();
+			// 准备上下文
+			// 其中 load 过程，完成了资源类的加载
 			prepareContext(context, environment, listeners, applicationArguments, printedBanner);
+
+			// 刷新 	Spring 上下文
 			refreshContext(context);
+
 			afterRefresh(context, applicationArguments);
 			stopWatch.stop();
 			if (this.logStartupInfo) {
@@ -399,33 +404,67 @@ public class SpringApplication {
 		}
 	}
 
+	/**
+	 * 准备上下文
+	 *
+	 * @param context
+	 * @param environment
+	 * @param listeners
+	 * @param applicationArguments
+	 * @param printedBanner
+	 */
 	private void prepareContext(ConfigurableApplicationContext context, ConfigurableEnvironment environment,
 			SpringApplicationRunListeners listeners, ApplicationArguments applicationArguments, Banner printedBanner) {
+		// 为上下文设置环境
 		context.setEnvironment(environment);
+
 		postProcessApplicationContext(context);
+
+		// 遍历 initializer 集合，挨个执行 initialize 方法
 		applyInitializers(context);
+
+		// 发布 ApplicationContextInitializedEvent 事件
 		listeners.contextPrepared(context);
+
 		if (this.logStartupInfo) {
 			logStartupInfo(context.getParent() == null);
 			logStartupProfileInfo(context);
 		}
+
 		// Add boot specific singleton beans
+
 		ConfigurableListableBeanFactory beanFactory = context.getBeanFactory();
+
+		//  向 工厂 注册 springApplicationArguments
 		beanFactory.registerSingleton("springApplicationArguments", applicationArguments);
+
+		// 向 工厂 注入 springBootBanner
 		if (printedBanner != null) {
 			beanFactory.registerSingleton("springBootBanner", printedBanner);
 		}
+
+		// 设置 allowBeanDefinitionOverriding 参数
 		if (beanFactory instanceof DefaultListableBeanFactory) {
 			((DefaultListableBeanFactory) beanFactory)
 					.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
+
+		// 如果是 懒初始化的
+		// 注册 BeanFactoryPostProcessor  => LazyInitializationBeanFactoryPostProcessor
 		if (this.lazyInitialization) {
 			context.addBeanFactoryPostProcessor(new LazyInitializationBeanFactoryPostProcessor());
 		}
+
 		// Load the sources
+		// 获取所有的资源类
+		// this.primarySources 、this.sources
 		Set<Object> sources = getAllSources();
 		Assert.notEmpty(sources, "Sources must not be empty");
+
+		// 完成资源类的加载
 		load(context, sources.toArray(new Object[0]));
+
+		// 发布 ApplicationPreparedEvent 事件
 		listeners.contextLoaded(context);
 	}
 
@@ -652,10 +691,12 @@ public class SpringApplication {
 	 * @param context the application context
 	 */
 	protected void postProcessApplicationContext(ConfigurableApplicationContext context) {
+		// 为工厂注入一个 beanNameGenerator（Bean名称生成器）
 		if (this.beanNameGenerator != null) {
 			context.getBeanFactory().registerSingleton(AnnotationConfigUtils.CONFIGURATION_BEAN_NAME_GENERATOR,
 					this.beanNameGenerator);
 		}
+
 		if (this.resourceLoader != null) {
 			if (context instanceof GenericApplicationContext) {
 				((GenericApplicationContext) context).setResourceLoader(this.resourceLoader);
@@ -664,6 +705,7 @@ public class SpringApplication {
 				((DefaultResourceLoader) context).setClassLoader(this.resourceLoader.getClassLoader());
 			}
 		}
+
 		if (this.addConversionService) {
 			context.getBeanFactory().setConversionService(ApplicationConversionService.getSharedInstance());
 		}
@@ -677,6 +719,7 @@ public class SpringApplication {
 	 */
 	@SuppressWarnings({ "rawtypes", "unchecked" })
 	protected void applyInitializers(ConfigurableApplicationContext context) {
+
 		for (ApplicationContextInitializer initializer : getInitializers()) {
 			Class<?> requiredType = GenericTypeResolver.resolveTypeArgument(initializer.getClass(),
 					ApplicationContextInitializer.class);
@@ -729,6 +772,8 @@ public class SpringApplication {
 
 	/**
 	 * Load beans into the application context.
+	 *
+	 *
 	 * @param context the context to load beans into
 	 * @param sources the sources to load
 	 */
@@ -746,6 +791,7 @@ public class SpringApplication {
 		if (this.environment != null) {
 			loader.setEnvironment(this.environment);
 		}
+
 		loader.load();
 	}
 

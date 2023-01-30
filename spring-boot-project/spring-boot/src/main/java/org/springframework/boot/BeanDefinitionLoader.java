@@ -78,12 +78,19 @@ class BeanDefinitionLoader {
 	BeanDefinitionLoader(BeanDefinitionRegistry registry, Object... sources) {
 		Assert.notNull(registry, "Registry must not be null");
 		Assert.notEmpty(sources, "Sources must not be empty");
+		// 设置 sources
 		this.sources = sources;
+		// 设置 annotatedReader  => AnnotatedBeanDefinitionReader
+		// 用来处理 注解
 		this.annotatedReader = new AnnotatedBeanDefinitionReader(registry);
+		// 设置 xmlReader        => XmlBeanDefinitionReader
+		// 用来处理 xml配置
 		this.xmlReader = new XmlBeanDefinitionReader(registry);
+		// 设置 groovyReader
 		if (isGroovyPresent()) {
 			this.groovyReader = new GroovyBeanDefinitionReader(registry);
 		}
+		// 设置 scanner
 		this.scanner = new ClassPathBeanDefinitionScanner(registry);
 		this.scanner.addExcludeFilter(new ClassExcludeFilter(sources));
 	}
@@ -132,6 +139,7 @@ class BeanDefinitionLoader {
 
 	private int load(Object source) {
 		Assert.notNull(source, "Source must not be null");
+		// 如果当前 source 是一个 Class
 		if (source instanceof Class<?>) {
 			return load((Class<?>) source);
 		}
@@ -153,7 +161,11 @@ class BeanDefinitionLoader {
 			GroovyBeanDefinitionSource loader = BeanUtils.instantiateClass(source, GroovyBeanDefinitionSource.class);
 			load(loader);
 		}
+
+		// 如果是符合条件的类
+		// 调用 annotatedReader 来注册
 		if (isEligible(source)) {
+			// 把 source 这个类 封装成 BeanDefinition 注册到 BeanFactory
 			this.annotatedReader.register(source);
 			return 1;
 		}
