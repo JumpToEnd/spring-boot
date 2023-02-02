@@ -445,8 +445,7 @@ public class SpringApplication {
 
 		// 设置 allowBeanDefinitionOverriding 参数
 		if (beanFactory instanceof DefaultListableBeanFactory) {
-			((DefaultListableBeanFactory) beanFactory)
-					.setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
+			((DefaultListableBeanFactory) beanFactory).setAllowBeanDefinitionOverriding(this.allowBeanDefinitionOverriding);
 		}
 
 		// 如果是 懒初始化的

@@ -152,7 +152,7 @@ public class ServletWebServerApplicationContext extends GenericWebApplicationCon
 	}
 
 	@Override
-	protected void onRefresh() {
+	protected void  onRefresh() {
 		super.onRefresh();
 		try {
 			createWebServer();

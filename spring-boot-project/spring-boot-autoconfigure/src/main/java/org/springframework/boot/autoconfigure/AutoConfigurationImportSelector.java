@@ -96,6 +96,7 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 		if (!isEnabled(annotationMetadata)) {
 			return NO_IMPORTS;
 		}
+		//
 		AutoConfigurationEntry autoConfigurationEntry = getAutoConfigurationEntry(annotationMetadata);
 		return StringUtils.toStringArray(autoConfigurationEntry.getConfigurations());
 	}
@@ -120,12 +121,21 @@ public class AutoConfigurationImportSelector implements DeferredImportSelector, 
 			return EMPTY_ENTRY;
 		}
 		AnnotationAttributes attributes = getAttributes(annotationMetadata);
+		// 从 META-INF/spring.factories 读取候选的自动配置类
 		List<String> configurations = getCandidateConfigurations(annotationMetadata, attributes);
+		// 去除重复
 		configurations = removeDuplicates(configurations);
+		// 根据 EnableAutoConfiguration注解中属性，获取不需要自动装配类名单
 		Set<String> exclusions = getExclusions(annotationMetadata, attributes);
+		// 根据 @EnableAutoConfiguration.exclude
+		// @EnableAutoConfiguration.excludeName
+		// spring.autoconfiguration.exclude 进行排除
 		checkExcludedClasses(configurations, exclusions);
+		// exclusions 也排除
 		configurations.removeAll(exclusions);
+		// 通过读取 spring.factories 中的 OnBeanCondition\OnClassCondition\OnWebApplicationCondition进行过滤
 		configurations = getConfigurationClassFilter().filter(configurations);
+		// 发布 AutoConfigurationImportEvent 事件
 		fireAutoConfigurationImportEvents(configurations, exclusions);
 		return new AutoConfigurationEntry(configurations, exclusions);
 	}
