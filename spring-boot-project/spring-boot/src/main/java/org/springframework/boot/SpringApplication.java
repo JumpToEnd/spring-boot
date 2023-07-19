@@ -250,6 +250,7 @@ public class SpringApplication {
 	 * @see #setSources(Set)
 	 */
 	public SpringApplication(Class<?>... primarySources) {
+		// 调用下面的构造方法
 		this(null, primarySources);
 	}
 
@@ -268,14 +269,19 @@ public class SpringApplication {
 		// 初始化 resourceLoader
 		this.resourceLoader = resourceLoader;
 		Assert.notNull(primarySources, "PrimarySources must not be null");
+
 		// 设置主类
 		this.primarySources = new LinkedHashSet<>(Arrays.asList(primarySources));
+
 		// 判断当前 web 类型（reactive、servlet、none）
 		this.webApplicationType = WebApplicationType.deduceFromClasspath();
+
 		// 设置 initializer （从 spring.factory 文件中读取 ApplicationContextInitializer 对应的值）
 		setInitializers((Collection) getSpringFactoriesInstances(ApplicationContextInitializer.class));
+
 		// 设置 listener （从spring.factory 文件中读取 ApplicationListener 对应的值）
 		setListeners((Collection) getSpringFactoriesInstances(ApplicationListener.class));
+
 		// 设置 mainApplicationClass
 		this.mainApplicationClass = deduceMainApplicationClass();
 	}
@@ -1339,6 +1345,8 @@ public class SpringApplication {
 	 * @return the running {@link ApplicationContext}
 	 */
 	public static ConfigurableApplicationContext run(Class<?> primarySource, String... args) {
+		// 把 primarySource 封装成数组
+		// 然后调用 run 方法
 		return run(new Class<?>[] { primarySource }, args);
 	}
 
@@ -1350,6 +1358,7 @@ public class SpringApplication {
 	 * @return the running {@link ApplicationContext}
 	 */
 	public static ConfigurableApplicationContext run(Class<?>[] primarySources, String[] args) {
+		// 分为两步：
 		// 1. 创建 SpringApplication 对象
 		//   a. 初始化 resourceLoader
 		//   b. 决定 web 类型
