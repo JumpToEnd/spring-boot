@@ -1,18 +1,20 @@
 plugins {
-    id 'java'
+    id "java-library"
+    id "org.springframework.boot.conventions"
+    id "org.springframework.boot.configuration-properties"
+    id "org.springframework.boot.optional-dependencies"
+    id "org.springframework.boot.deployed"
 }
 
-group = 'xyz.jzhp'
-version = '2.6.15'
-
-repositories {
-    mavenCentral()
-}
+description = "Spring Boot Debug"
 
 dependencies {
     testImplementation platform('org.junit:junit-bom:5.9.1')
     testImplementation 'org.junit.jupiter:junit-jupiter'
-    implementation(project(":spring-boot-project:spring-boot-starters:spring-boot-starter"))
+    api(project(":spring-boot-project:spring-boot"))
+    api(project(":spring-boot-project:spring-boot-autoconfigure"))
+    api(project(":spring-boot-project:spring-boot-starters:spring-boot-starter-tomcat"))
+    api(project(":spring-boot-project:spring-boot-starters:spring-boot-starter-web"))
 }
 
 test {
