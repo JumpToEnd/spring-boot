@@ -13,8 +13,8 @@ dependencies {
     testImplementation 'org.junit.jupiter:junit-jupiter'
     api(project(":spring-boot-project:spring-boot"))
     api(project(":spring-boot-project:spring-boot-autoconfigure"))
-    api(project(":spring-boot-project:spring-boot-starters:spring-boot-starter-tomcat"))
-    api(project(":spring-boot-project:spring-boot-starters:spring-boot-starter-web"))
+//    api(project(":spring-boot-project:spring-boot-starters:spring-boot-starter-tomcat"))
+//    api(project(":spring-boot-project:spring-boot-starters:spring-boot-starter-web"))
 }
 
 test {
